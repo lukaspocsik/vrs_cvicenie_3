@@ -47,4 +47,12 @@
 #define BUTTON_GET_STATE		!(*((volatile uint32_t *)((uint32_t)(GPIOA_BASE_ADDR + 0x10U))) & (1 << 3))
 
 
+typedef enum
+{
+  NONE = 1, RISE = 2, FALL = 3
+} EDGE_TYPE;
+
+EDGE_TYPE edgeDetect(uint8_t pin_state, uint8_t samples);
+
+
 #endif /* ASSIGNMENT_H_ */

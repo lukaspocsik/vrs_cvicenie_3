@@ -22,6 +22,9 @@
 #include "main.h"
 #include "assignment.h"
 
+int OLD_STATE = 0;
+int8_t SAMPLES = -1;
+
 int main(void) {
 	/*
 	 *  DO NOT WRITE TO THE WHOLE REGISTER!!!
@@ -66,28 +69,59 @@ int main(void) {
 	//Set no pull for GPIOA pin 4
 	GPIOA_PUPDR_REG &= ~(0x3 << 8);
 
-	while (1)
-	{
-		if (BUTTON_GET_STATE)
-		{
-			// 0.25s delay
-			LL_mDelay(250);
-			LED_ON;
-			// 0.25s delay
-			LL_mDelay(250);
-			LED_OFF;
-		}
-		else
-		{
-			// 1s delay
-			LL_mDelay(1000);
-			LED_ON;
-			// 1s delay
-			LL_mDelay(1000);
-			LED_OFF;
+	int LED_STATE = 0;
+	EDGE_TYPE EDGE = 0;
+	uint8_t max_samples = 5;
+
+	while (1) {
+
+		EDGE = edgeDetect(BUTTON_GET_STATE, max_samples);
+
+		if (EDGE == RISE) {
+			if (LED_STATE == 0) {
+				LED_ON;
+				LED_STATE = 1;
+			} else {
+				LED_OFF;
+				LED_STATE = 0;
+			}
 		}
 	}
+}
 
+EDGE_TYPE edgeDetect(uint8_t pin_state, uint8_t samples) {
+	EDGE_TYPE vysledok;
+
+	switch (SAMPLES) {
+	case -1:
+		if (OLD_STATE != pin_state) {
+			OLD_STATE = pin_state;
+			SAMPLES = 1;
+		}
+
+		vysledok = NONE;
+		break;
+
+	default:
+		if (pin_state == OLD_STATE) {
+			SAMPLES++;
+		} else {
+			SAMPLES = -1;
+			OLD_STATE = pin_state;
+		}
+		vysledok = NONE;
+
+		if (SAMPLES == samples && OLD_STATE == 1) {
+			SAMPLES = -1;
+			vysledok = RISE;
+
+		} else if (SAMPLES == samples && OLD_STATE == 0) {
+			SAMPLES = -1;
+			vysledok = FALL;
+		}
+
+	}
+	return vysledok;
 }
 
 /* USER CODE BEGIN 4 */
